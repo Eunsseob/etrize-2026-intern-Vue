@@ -1,8 +1,9 @@
 <script setup>
 
-    import {ref, reactive} from 'vue'
+    import {ref, reactive, onMounted} from 'vue'
     import TodoItem from '../components/TodoItem.vue'
     import BasicTable from '../components/BasicTable.vue'
+    import axios from 'axios'
 
     // msg 을 넘버로 넣으면 자동으로 연산해서 넘버기입
     const msg = 131
@@ -65,6 +66,7 @@
     })
 
     const userData = reactive({
+        id: null,
         name: '',
         age : 0,
         address: '',
@@ -102,15 +104,15 @@
     const selectedId = ref(null)
 
     const clickUser = (user) => {
-        const findUser = tableData.rows.find(row => row.id === user.id);
-        if (!findUser) return
+        // const findUser = tableData.rows.find(row => row.id === user.id);
+        // if (!findUser) return
 
-        selectedId.value = findUser.id  // 어떤 row인지 기억 해서 내용을 수정하는 방향
-
-        userData.name = findUser.name;
-        userData.age = findUser.age;
-        userData.address = findUser.address;
-        userData.email = findUser.email;
+        // selectedId.value = findUser.id  // 어떤 row인지 기억 해서 내용을 수정하는 방향
+        userData.id = user.id
+        userData.name = user.name;
+        userData.age = user.age;
+        userData.address = user.address;
+        userData.email = user.email;
     }
     
     // 클릭한 유저의 ID를 찾아서 그 유저의 데이터를 저장한다.
@@ -123,24 +125,45 @@
     }
 
     const updateUser = () => {
-        const user = tableData.rows.find(row => row.id === selectedId.value);
-        if (user) {
-            // Object.assign(대상객체, 복사할객체)
-            Object.assign(user, {
-                name: userData.name,
-                age: userData.age,
-                address: userData.address,
-                email: userData.email
-            })
-        }
-
-        // 입력 필드 초기화
-        userData.name = '';
-        userData.age = 0;
-        userData.address = '';
-        userData.email = '';
-        selectedId.value = null;
+        tableData.rows.map(user => {
+            if (user.id === userData.id) {
+                user.name = userData.name;
+                user.age = userData.age;
+                user.address = userData.address;
+                user.email = userData.email;
+            }
+            return user;
+        })
     }
+
+    const userData1 = reactive({
+        id: null,
+        name: '',
+        address: '',
+        email: ''
+    })
+
+    const userList = reactive([])
+
+    onMounted(() => {
+        dataCall();
+    })
+
+    const dataCall = () => {
+        axios.get('https://jsonplaceholder.typicode.com/users',
+            {params: {
+            _limit: 5
+            }
+        }
+        )
+            .then(response => {
+                console.log(response.data);
+                userList.push(...response.data)
+            })
+            .catch(error => {
+                console.error('Error fetching user data:', error);
+            });
+    };
 
 </script>
 
@@ -203,8 +226,16 @@
         <button @click="addUser">추가</button>
     &emsp;
         <button @click="updateUser">수정</button>
+    &emsp;
+        <button @click="dataCall">데이터호출</button>
     </p>
     
+    <ul>
+        <li v-for="user in userList" :key="user.id">
+            {{ user.name }} - {{ user.email }}
+        </li>
+    </ul>
+
     <BasicTable :tableData="tableData" 
     :deleteUser="deleteUser" 
     :clickUser="clickUser"

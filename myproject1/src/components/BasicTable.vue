@@ -27,18 +27,12 @@
                 <!-- 키값이 없으니깐 헤더를 직접 호출한다 -->
                 <th v-for="header in tableData.header" :key="header">{{ header }}</th>
             </tr>
-            <tr v-for="row in tableData.rows" :key="row.id">
+            <tr v-for="row in tableData.rows" :key="row.id" @click="clickUser(row)">
                 <td><button @click="deleteUser(row.id)">삭제</button></td>
-                
+
                 <!-- 이름 클릭시 clickUser 호출 -->
                 <td v-for="header in tableData.header" :key="header">
-                    <span 
-                        v-if="header === 'name'" 
-                        @click="clickUser(row)"
-                    >
-                        {{ row[header] }}
-                    </span>
-                    <span v-else>{{ row[header] }}</span>
+                    {{ row[header] }}
                 </td>
             </tr>
     </table>
